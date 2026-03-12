@@ -95,6 +95,9 @@ Elements are laid out using two properties on containers:
   - `'bottomLeft'` — anchored to bottom, grow right/up
   - `'bottomRight'` — anchored to bottom-right, grow left/up
 
+<img width="1568" height="755" alt="image" src="https://github.com/user-attachments/assets/e481c700-e2ef-4575-ba57-65f7f0dcda19" />
+
+
 ## Grid mode
 
 Set `grid: true` to tile the element tree across the entire canvas:
