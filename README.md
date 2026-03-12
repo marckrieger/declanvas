@@ -4,6 +4,8 @@ Declarative layout engine for HTML Canvas. Compose text, images, and containers 
 
 Useful for generating textures for 3D objects, dynamic thumbnails, OG images, or anywhere you need programmatic canvas rendering with layout control.
 
+[Demo on CodePen](https://codepen.io/collection/PojRrj)
+
 ## Install
 
 ```bash
