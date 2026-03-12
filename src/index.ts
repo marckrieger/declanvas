@@ -141,6 +141,13 @@ function drawElements(
 ): Point {
   const accOffset: Point = { x: origin.x, y: origin.y }
 
+  // Main-axis step: determines whether the accumulator advances positively or
+  // negatively. Bottom orientations reverse the Y axis, right orientations
+  // reverse the X axis.
+  const ySign = (orientation === 'bottomLeft' || orientation === 'bottomRight') ? -1 : 1
+  const xSign = (orientation === 'topRight' || orientation === 'bottomRight') ? -1 : 1
+  const mainSign = direction === 'column' ? ySign : xSign
+
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i]!
     const isLast = i === elements.length - 1
@@ -157,8 +164,8 @@ function drawElements(
               : { x: accOffset.x, y: origin.y }
 
           const paddedOrigin: Point = {
-            x: baseOrigin.x + padding,
-            y: baseOrigin.y + padding,
+            x: baseOrigin.x + xSign * padding,
+            y: baseOrigin.y + ySign * padding,
           }
 
           const childEnd = drawElements(
@@ -172,8 +179,8 @@ function drawElements(
           )
 
           const containerEnd: Point = {
-            x: childEnd.x + padding,
-            y: childEnd.y + padding,
+            x: childEnd.x + xSign * padding,
+            y: childEnd.y + ySign * padding,
           }
 
           if (direction === 'column') {
@@ -198,9 +205,9 @@ function drawElements(
 
         if (direction === 'column') {
           accOffset.x = Math.max(accOffset.x, origin.x + imgW)
-          accOffset.y += imgH
+          accOffset.y += mainSign * imgH
         } else {
-          accOffset.x += imgW
+          accOffset.x += mainSign * imgW
           accOffset.y = Math.max(accOffset.y, origin.y + imgH)
         }
         break
@@ -217,9 +224,9 @@ function drawElements(
 
         if (direction === 'column') {
           accOffset.x = Math.max(accOffset.x, origin.x + textWidth)
-          accOffset.y += textHeight
+          accOffset.y += mainSign * textHeight
         } else {
-          accOffset.x += textWidth
+          accOffset.x += mainSign * textWidth
           accOffset.y = Math.max(accOffset.y, origin.y + textHeight)
         }
         break
@@ -228,9 +235,9 @@ function drawElements(
 
     if (!isLast && gap > 0) {
       if (direction === 'column') {
-        accOffset.y += gap
+        accOffset.y += mainSign * gap
       } else {
-        accOffset.x += gap
+        accOffset.x += mainSign * gap
       }
     }
   }
