@@ -1,0 +1,43 @@
+{
+  "name": "declanvas",
+  "version": "0.1.0",
+  "description": "Declarative layout engine for HTML Canvas — compose text, images, and containers with flexbox-like semantics",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup --config tsup.configure.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "canvas",
+    "declarative",
+    "layout",
+    "2d",
+    "text",
+    "image",
+    "texture",
+    "threejs"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}
