@@ -263,16 +263,16 @@ function resolveDrawOrigin(
 ): Point {
   const map: Record<Direction, Record<Orientation, Point>> = {
     column: {
-      topLeft:     { x: origin.x,         y: accOffset.y          },
-      topRight:    { x: origin.x + width,  y: accOffset.y          },
+      topLeft:     { x: origin.x,          y: accOffset.y          },
+      topRight:    { x: origin.x - width,  y: accOffset.y          },
       bottomLeft:  { x: origin.x,          y: accOffset.y - height },
-      bottomRight: { x: origin.x + width,  y: accOffset.y - height },
+      bottomRight: { x: origin.x - width,  y: accOffset.y - height },
     },
     row: {
       topLeft:     { x: accOffset.x,         y: origin.y          },
-      topRight:    { x: accOffset.x - width,  y: origin.y          },
-      bottomLeft:  { x: accOffset.x,          y: origin.y + height },
-      bottomRight: { x: accOffset.x - width,  y: origin.y + height },
+      topRight:    { x: accOffset.x - width, y: origin.y          },
+      bottomLeft:  { x: accOffset.x,         y: origin.y - height },
+      bottomRight: { x: accOffset.x - width, y: origin.y - height },
     },
   }
 
