@@ -1,6 +1,6 @@
 {
   "name": "declanvas",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Declarative layout engine for HTML Canvas — compose text, images, and containers with flexbox-like semantics",
   "type": "module",
   "main": "./dist/index.cjs",
