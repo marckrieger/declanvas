@@ -156,6 +156,9 @@ function drawElements(
       case 'container': {
         if (element.children.length > 0) {
           const padding = element.padding ?? 0
+          const childOrientation = element.orientation ?? orientation
+          const cYSign = (childOrientation === 'bottomLeft' || childOrientation === 'bottomRight') ? -1 : 1
+          const cXSign = (childOrientation === 'topRight' || childOrientation === 'bottomRight') ? -1 : 1
 
           const baseOrigin: Point = element.origin
             ? { x: origin.x + element.origin.x, y: origin.y + element.origin.y }
@@ -164,8 +167,8 @@ function drawElements(
               : { x: accOffset.x, y: origin.y }
 
           const paddedOrigin: Point = {
-            x: baseOrigin.x + xSign * padding,
-            y: baseOrigin.y + ySign * padding,
+            x: baseOrigin.x + cXSign * padding,
+            y: baseOrigin.y + cYSign * padding,
           }
 
           const childEnd = drawElements(
@@ -173,14 +176,14 @@ function drawElements(
             element.children,
             imageCache,
             paddedOrigin,
-            element.orientation ?? orientation,
+            childOrientation,
             element.direction ?? 'column',
             element.gap ?? 0,
           )
 
           const containerEnd: Point = {
-            x: childEnd.x + xSign * padding,
-            y: childEnd.y + ySign * padding,
+            x: childEnd.x + cXSign * padding,
+            y: childEnd.y + cYSign * padding,
           }
 
           if (direction === 'column') {
