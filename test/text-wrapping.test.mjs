@@ -84,6 +84,25 @@ test('preserves explicit line breaks', async () => {
   assert.deepEqual(calls.map(({ text }) => text), ['first', 'second'])
 })
 
+test('wraps within a container maxWidth before reaching the canvas edge', async () => {
+  const calls = installCanvas()
+
+  await createCanvas({
+    width: 200,
+    height: 100,
+    elements: [{
+      kind: 'container',
+      origin: { x: 20, y: 0 },
+      padding: 10,
+      maxWidth: 100,
+      children: [{ kind: 'text', text: 'one two x', fontSize: 10 }],
+    }],
+  })
+
+  assert.deepEqual(calls.map(({ text }) => text), ['one two', 'x'])
+  assert.ok(calls.every(({ x }) => x === 30))
+})
+
 test('splits a word that is wider than the available space', async () => {
   const calls = installCanvas()
 

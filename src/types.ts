@@ -15,6 +15,8 @@ export interface ContainerProps {
   orientation?: Orientation
   gap?: number
   padding?: number
+  /** Maximum outer width. Text descendants wrap within this boundary. */
+  maxWidth?: number
 }
 
 export interface TextProps {

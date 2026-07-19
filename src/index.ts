@@ -178,6 +178,12 @@ function drawElements(
             y: baseOrigin.y + cYSign * padding,
           }
 
+          const containerBounds: HorizontalBounds = element.maxWidth === undefined
+            ? bounds
+            : cXSign === 1
+              ? { left: baseOrigin.x, right: baseOrigin.x + element.maxWidth }
+              : { left: baseOrigin.x - element.maxWidth, right: baseOrigin.x }
+
           const childEnd = drawElements(
             context,
             element.children,
@@ -187,8 +193,8 @@ function drawElements(
             element.direction ?? 'column',
             element.gap ?? 0,
             {
-              left: bounds.left + padding,
-              right: bounds.right - padding,
+              left: containerBounds.left + padding,
+              right: containerBounds.right - padding,
             },
           )
 
