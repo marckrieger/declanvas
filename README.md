@@ -53,6 +53,7 @@ Groups child elements with layout control.
   origin?: { x: number, y: number },
   gap?: number,
   padding?: number,
+  maxWidth?: number,                  // outer width; text wraps within it
 }
 ```
 
