@@ -75,6 +75,11 @@ export async function createCanvas({
 
 type ImageCache = Map<string, HTMLImageElement>
 
+type HorizontalBounds = {
+  left: number
+  right: number
+}
+
 function collectImageSrcs(elements: CanvasElement[], srcs: Set<string>): void {
   for (const el of elements) {
     if (el.kind === 'image') {
@@ -139,6 +144,7 @@ function drawElements(
   orientation: Orientation = 'topLeft',
   direction: Direction = 'column',
   gap: number = 0,
+  bounds: HorizontalBounds = { left: 0, right: context.canvas.width },
 ): Point {
   const accOffset: Point = { x: origin.x, y: origin.y }
 
@@ -180,6 +186,10 @@ function drawElements(
             childOrientation,
             element.direction ?? 'column',
             element.gap ?? 0,
+            {
+              left: bounds.left + padding,
+              right: bounds.right - padding,
+            },
           )
 
           const containerEnd: Point = {
@@ -221,10 +231,27 @@ function drawElements(
         const fontSize = element.fontSize ?? DEFAULT_FONTSIZE
         const resolved: TextProps = { ...element, fontSize }
 
-        const { x: textWidth, y: textHeight } = getTextMetrics(context, resolved)
+        const horizontalAnchor = direction === 'column' ? origin.x : accOffset.x
+        const availableWidth = (
+          orientation === 'topRight' || orientation === 'bottomRight'
+            ? horizontalAnchor - bounds.left
+            : bounds.right - horizontalAnchor
+        )
+
+        const textLayout = getTextLayout(context, resolved, Math.max(0, availableWidth))
+        const { x: textWidth, y: textHeight } = textLayout.size
         const drawOrigin = resolveDrawOrigin(origin, textWidth, textHeight, accOffset, orientation, direction)
 
-        drawText(context, drawOrigin, resolved.text, fontSize, resolved.fontFamily, resolved.fontWeight, resolved.color)
+        drawText(
+          context,
+          drawOrigin,
+          textLayout,
+          fontSize,
+          resolved.fontFamily,
+          resolved.fontWeight,
+          resolved.color,
+          orientation === 'topRight' || orientation === 'bottomRight',
+        )
 
         if (direction === 'column') {
           accOffset.x = Math.max(accOffset.x, origin.x + textWidth)
@@ -287,29 +314,109 @@ function resolveDrawOrigin(
 // Text helpers
 // ---------------------------------------------------------------------------
 
-function getTextMetrics(context: CanvasRenderingContext2D, element: TextProps): Point {
+type TextLine = {
+  text: string
+  width: number
+  height: number
+}
+
+type TextLayout = {
+  lines: TextLine[]
+  size: Point
+}
+
+function getTextLayout(
+  context: CanvasRenderingContext2D,
+  element: TextProps,
+  maxWidth: number,
+): TextLayout {
   context.font = `${element.fontWeight ?? ''} ${element.fontSize}px ${element.fontFamily ?? 'Arial'}`.trim()
-  const metrics = context.measureText(element.text)
+
+  const lines = wrapText(context, element.text, maxWidth).map((text) => {
+    const metrics = context.measureText(text || 'M')
+    return {
+      text,
+      width: text ? metrics.width : 0,
+      height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent || element.fontSize || DEFAULT_FONTSIZE,
+    }
+  })
+
   return {
-    x: metrics.width,
-    y: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
+    lines,
+    size: {
+      x: Math.max(0, ...lines.map((line) => line.width)),
+      y: lines.reduce((height, line) => height + line.height, 0),
+    },
   }
+}
+
+function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  if (!Number.isFinite(maxWidth) || maxWidth <= 0) return [text]
+
+  const lines: string[] = []
+
+  for (const paragraph of text.split('\n')) {
+    const words = paragraph.trim().split(/\s+/).filter(Boolean)
+
+    if (words.length === 0) {
+      lines.push('')
+      continue
+    }
+
+    let line = ''
+
+    for (const word of words) {
+      const candidate = line ? `${line} ${word}` : word
+      if (context.measureText(candidate).width <= maxWidth) {
+        line = candidate
+        continue
+      }
+
+      if (line) {
+        lines.push(line)
+        line = ''
+      }
+
+      if (context.measureText(word).width <= maxWidth) {
+        line = word
+        continue
+      }
+
+      for (const character of [...word]) {
+        const fragment = line + character
+        if (line && context.measureText(fragment).width > maxWidth) {
+          lines.push(line)
+          line = character
+        } else {
+          line = fragment
+        }
+      }
+    }
+
+    if (line) lines.push(line)
+  }
+
+  return lines.length > 0 ? lines : ['']
 }
 
 function drawText(
   context: CanvasRenderingContext2D,
   origin: Point,
-  text: string,
+  layout: TextLayout,
   fontSize: number,
   fontFamily: string = 'Arial',
   fontWeight: string = '',
   color?: string,
+  alignRight: boolean = false,
 ): void {
   context.save()
   context.font = `${fontWeight} ${fontSize}px ${fontFamily}`.trim()
   if (color) context.fillStyle = color
-  const metrics = context.measureText(text)
-  const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-  context.fillText(text, origin.x, origin.y + textHeight)
+  let y = origin.y
+  for (const line of layout.lines) {
+    y += line.height
+    const x = alignRight ? origin.x + layout.size.x - line.width : origin.x
+    context.fillText(line.text, x, y)
+  }
   context.restore()
 }

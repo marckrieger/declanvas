@@ -23,6 +23,7 @@
   ],
   "scripts": {
     "build": "tsup --config tsup.configure.ts",
+    "test": "npm run build && node --test",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

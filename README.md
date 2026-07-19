@@ -71,6 +71,10 @@ Renders a string with configurable font properties.
 }
 ```
 
+Text wraps automatically at word boundaries when it reaches the drawable edge
+of the canvas. Container padding is respected, explicit newline characters are
+preserved, and words wider than the available space are split as needed.
+
 ### Image
 
 Draws an image. At least one dimension is required — the other is inferred from the aspect ratio.
