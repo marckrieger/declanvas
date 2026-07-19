@@ -2,6 +2,7 @@
   "name": "declanvas",
   "version": "0.1.5",
   "description": "Declarative layout engine for HTML Canvas — compose text, images, and containers with flexbox-like semantics",
+  "repository": "https://github.com/marckrieger/declanvas",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
