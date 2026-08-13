@@ -23,6 +23,8 @@ export interface TextProps {
   kind: 'text'
   text: string
   fontSize?: number
+  /** Multiplier applied to each rendered line's measured height. */
+  lineHeight?: number
   fontWeight?: 'bold' | 'normal'
   fontFamily?: string
   color?: string

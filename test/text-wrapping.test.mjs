@@ -84,6 +84,28 @@ test('preserves explicit line breaks', async () => {
   assert.deepEqual(calls.map(({ text }) => text), ['first', 'second'])
 })
 
+test('applies lineHeight to wrapped lines and following elements', async () => {
+  const calls = installCanvas()
+
+  await createCanvas({
+    width: 80,
+    height: 100,
+    elements: [{
+      kind: 'container',
+      children: [
+        { kind: 'text', text: 'one two x', fontSize: 10, lineHeight: 1.2 },
+        { kind: 'text', text: 'after', fontSize: 10 },
+      ],
+    }],
+  })
+
+  assert.deepEqual(calls.map(({ text, y }) => ({ text, y })), [
+    { text: 'one two', y: 12 },
+    { text: 'x', y: 24 },
+    { text: 'after', y: 34 },
+  ])
+})
+
 test('wraps within a container maxWidth before reaching the canvas edge', async () => {
   const calls = installCanvas()
 

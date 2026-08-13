@@ -66,6 +66,7 @@ Renders a string with configurable font properties.
   kind: 'text',
   text: string,
   fontSize?: number,       // default: 50
+  lineHeight?: number,     // measured line-height multiplier; default: 1
   fontWeight?: 'bold' | 'normal',
   fontFamily?: string,     // default: 'Arial'
   color?: string,
@@ -74,7 +75,8 @@ Renders a string with configurable font properties.
 
 Text wraps automatically at word boundaries when it reaches the drawable edge
 of the canvas. Container padding is respected, explicit newline characters are
-preserved, and words wider than the available space are split as needed.
+preserved, and words wider than the available space are split as needed. Set
+`lineHeight` to a multiplier such as `1.2` to add space between wrapped lines.
 
 ### Image
 

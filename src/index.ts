@@ -340,10 +340,11 @@ function getTextLayout(
 
   const lines = wrapText(context, element.text, maxWidth).map((text) => {
     const metrics = context.measureText(text || 'M')
+    const measuredHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
     return {
       text,
       width: text ? metrics.width : 0,
-      height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent || element.fontSize || DEFAULT_FONTSIZE,
+      height: (measuredHeight || element.fontSize || DEFAULT_FONTSIZE) * (element.lineHeight ?? 1),
     }
   })
 
