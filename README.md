@@ -1,176 +1,112 @@
 # declanvas
 
-Declarative layout engine for HTML Canvas. Compose text, images, and containers using a simple element tree — no imperative draw calls needed.
-
-Useful for generating textures for 3D objects, dynamic thumbnails, OG images, or anywhere you need programmatic canvas rendering with layout control.
-
-[Demo on CodePen](https://codepen.io/collection/PojRrj)
+A small, dependency-free TypeScript library for rendering declarative, Flexbox-inspired layouts to an `HTMLCanvasElement`.
 
 ## Install
 
-```bash
+```sh
 npm install declanvas
 ```
 
-## Usage
+## Version 0.2 rewrite
 
-```typescript
-import { createCanvas } from 'declanvas'
+Version 0.2 is a complete rewrite with a new typed scene model and an ESM-only package. It replaces the 0.1 `createCanvas` API with `renderCanvas`; nodes now use `type`, `style`, and `children` instead of the earlier `kind` and `elements` shape.
 
-const canvas = await createCanvas({
-  width: 1024,
-  height: 1024,
-  backgroundColor: 'white',
-  elements: [
+## Example
+
+```ts
+import { renderCanvas, type CanvasScene } from "declanvas";
+
+const scene = {
+  width: 1200,
+  height: 630,
+  backgroundColor: "#f7f7f8",
+  style: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 32,
+    padding: 48,
+  },
+  children: [
     {
-      kind: 'container',
-      padding: 40,
-      gap: 16,
+      type: "container",
+      style: { flexGrow: 1, gap: 16 },
       children: [
-        { kind: 'text', text: 'Hello', fontSize: 72, fontWeight: 'bold' },
-        { kind: 'text', text: 'World', fontSize: 48, color: '#666' },
-        { kind: 'image', src: '/logo.png', width: 200 },
+        {
+          type: "text",
+          text: "Build canvases declaratively.",
+          style: {
+            width: "100%",
+            color: "#161618",
+            fontFamily: "Inter, sans-serif",
+            fontSize: 56,
+            fontWeight: 700,
+            lineHeight: 64,
+            maxLines: 2,
+            textOverflow: "ellipsis",
+          },
+        },
+        {
+          type: "text",
+          text: "Typed objects in, HTMLCanvasElement out.",
+          style: { color: "#65656b", fontSize: 24 },
+        },
       ],
     },
-  ],
-})
-
-document.body.appendChild(canvas)
-```
-
-## Elements
-
-### Container
-
-Groups child elements with layout control.
-
-```typescript
-{
-  kind: 'container',
-  children: CanvasElement[],
-  direction?: 'row' | 'column',  // default: 'column'
-  orientation?: Orientation,      // default: 'topLeft'
-  origin?: { x: number, y: number },
-  gap?: number,
-  padding?: number,
-  maxWidth?: number,                  // outer width; text wraps within it
-}
-```
-
-### Text
-
-Renders a string with configurable font properties.
-
-```typescript
-{
-  kind: 'text',
-  text: string,
-  fontSize?: number,       // default: 50
-  lineHeight?: number,     // measured line-height multiplier; default: 1
-  fontWeight?: 'bold' | 'normal',
-  fontFamily?: string,     // default: 'Arial'
-  color?: string,
-}
-```
-
-Text wraps automatically at word boundaries when it reaches the drawable edge
-of the canvas. Container padding is respected, explicit newline characters are
-preserved, and words wider than the available space are split as needed. Set
-`lineHeight` to a multiplier such as `1.2` to add space between wrapped lines.
-
-### Image
-
-Draws an image. At least one dimension is required — the other is inferred from the aspect ratio.
-
-```typescript
-{
-  kind: 'image',
-  src: string,
-  width?: number,
-  height?: number,
-}
-```
-
-## Layout
-
-Elements are laid out using two properties on containers:
-
-- **`direction`** — `'column'` (vertical, default) or `'row'` (horizontal)
-- **`orientation`** — controls which corner elements anchor to:
-  - `'topLeft'` — elements grow right/down (default)
-  - `'topRight'` — anchored to right edge, grow left/down
-  - `'bottomLeft'` — anchored to bottom, grow right/up
-  - `'bottomRight'` — anchored to bottom-right, grow left/up
-
-<img width="1568" height="755" alt="image" src="https://github.com/user-attachments/assets/e481c700-e2ef-4575-ba57-65f7f0dcda19" />
-
-
-## Grid mode
-
-Set `grid: true` to tile the element tree across the entire canvas:
-
-```typescript
-const canvas = await createCanvas({
-  width: 2048,
-  height: 2048,
-  grid: true,
-  elements: [
     {
-      kind: 'container',
-      padding: 20,
-      children: [
-        { kind: 'image', src: '/tile.png', width: 100 },
-      ],
+      type: "image",
+      src: "/product.png",
+      crossOrigin: "anonymous",
+      style: {
+        width: 360,
+        height: 360,
+        maxWidth: "40%",
+        objectFit: "contain",
+        objectPosition: "center",
+      },
     },
   ],
-})
-```
+} satisfies CanvasScene;
 
-## Three.js example
-
-```typescript
-import { createCanvas } from 'declanvas'
-import * as THREE from 'three'
-
-const canvas = await createCanvas({
-  width: 2048,
-  height: 2048,
-  backgroundColor: 'white',
-  elements: [
-    {
-      kind: 'container',
-      padding: 50,
-      gap: 20,
-      children: [
-        { kind: 'text', text: 'Product Label', fontSize: 80, fontWeight: 'bold' },
-        { kind: 'image', src: '/brand-logo.png', width: 400 },
-      ],
-    },
-  ],
-})
-
-const texture = new THREE.CanvasTexture(canvas)
-const material = new THREE.MeshStandardMaterial({ map: texture })
+const canvas = await renderCanvas(scene);
+document.body.append(canvas);
 ```
 
 ## API
 
-### `createCanvas(props: CanvasProps): Promise<HTMLCanvasElement>`
+### `renderCanvas(scene, options?)`
 
-The single entry point. Returns a promise that resolves once all images are loaded and the canvas is fully drawn.
+Returns a `Promise<HTMLCanvasElement>`. Rendering waits for image URLs and fonts registered in `document.fonts`. The promise rejects with `CanvasRenderError` if validation or asset loading fails.
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `elements` | `ContainerProps[]` | required | Root containers to render |
-| `width` | `number` | `1024` | Canvas width in pixels |
-| `height` | `number` | `1024` | Canvas height in pixels |
-| `backgroundColor` | `string` | `'transparent'` | Fill color for the canvas background |
-| `grid` | `boolean` | `false` | Tile the content to fill the canvas |
+`options.pixelRatio` overrides `devicePixelRatio`. `options.document` is useful for rendering against another browser document.
 
-## Browser only
+### Nodes
 
-declanvas uses `document.createElement('canvas')` and `new Image()` under the hood. It runs in any modern browser but does not work in Node.js without a canvas polyfill like `node-canvas`.
+- `container` lays out its children in a `row` or `column`.
+- `text` measures, wraps, truncates, and paints styled text.
+- `image` accepts a URL or an existing `HTMLImageElement` and supports CSS-like object fitting.
 
-## License
+Every node is a box. Sizes accept non-negative pixel numbers, percentage strings such as `"50%"`, and `"auto"` where applicable. The box model supports padding, margins, min/max sizes, backgrounds, uniform borders, rounded corners, opacity, and clipping.
 
-MIT
+## Layout behavior
+
+The layout engine intentionally implements a useful subset of Flexbox:
+
+- `flexDirection`: `row` or `column`
+- `justifyContent`: `flex-start`, `center`, `flex-end`, `space-between`, `space-around`, or `space-evenly`
+- `alignItems` and `alignSelf`: `flex-start`, `center`, `flex-end`, or `stretch`
+- `gap`, `flexGrow`, `flexShrink`, and `flexBasis`
+- Auto margins on the main axis
+
+It does not implement wrapping, reverse directions, `order`, positioned layout, margin collapsing, CSS inheritance, or the complete CSS sizing algorithm. Percentages resolve against the corresponding parent content dimension; a percentage whose parent dimension is not yet definite behaves as `auto`.
+
+Numeric dimensions use logical CSS pixels. The returned canvas has logical CSS dimensions and a high-resolution backing store.
+
+## Development
+
+```sh
+npm run typecheck
+npm test
+npm run build
+```
