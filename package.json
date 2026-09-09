@@ -1,6 +1,6 @@
 {
   "name": "declanvas",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A dependency-free TypeScript library for rendering declarative, Flexbox-inspired layouts to HTML Canvas",
   "repository": "https://github.com/marckrieger/declanvas",
   "type": "module",

@@ -347,11 +347,6 @@ function measureNode(
     const image = assets.images.get(node);
     naturalWidth = image?.naturalWidth ?? 0;
     naturalHeight = image?.naturalHeight ?? 0;
-    if (contentWidth !== undefined && declaredHeight === undefined && naturalWidth > 0) {
-      naturalHeight = contentWidth * naturalHeight / naturalWidth;
-    } else if (contentHeight !== undefined && declaredWidth === undefined && naturalHeight > 0) {
-      naturalWidth = contentHeight * naturalWidth / naturalHeight;
-    }
   } else {
     const intrinsic = measureContainerContent(node, context, assets, contentWidth, contentHeight);
     naturalWidth = intrinsic.width;
@@ -364,8 +359,10 @@ function measureNode(
   height = constrainBorderSize(height, "height", style, parentHeight, verticalChrome);
 
   if (node.type === "image" && naturalWidth > 0 && naturalHeight > 0) {
-    const widthAuto = style.width === undefined || style.width === "auto";
-    const heightAuto = style.height === undefined || style.height === "auto";
+    // Keep the source ratio unchanged across intrinsic measurement and layout.
+    // A dimension assigned by flex layout is definite, even with an auto style.
+    const widthAuto = declaredWidth === undefined;
+    const heightAuto = declaredHeight === undefined;
     if (heightAuto) {
       height = constrainBorderSize(
         Math.max(0, width - horizontalChrome) * naturalHeight / naturalWidth + verticalChrome,

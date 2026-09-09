@@ -207,6 +207,97 @@ describe("renderCanvas", () => {
     expect(draw?.args.slice(1)).toEqual([0, 0, 100, 50]);
   });
 
+  it.each([400, 500, 1500, 3000])("reserves the drawn height of a bottom-aligned logo with source width %i", async (sourceWidth) => {
+    const env = environment();
+    await renderCanvas({
+      width: 600,
+      height: 300,
+      children: [{
+        type: "container",
+        style: { width: "100%", padding: 20, boxSizing: "border-box", marginTop: "auto", flexShrink: 0 },
+        children: [{
+          type: "image",
+          src: loadedImage(sourceWidth, sourceWidth * 0.15),
+          style: { width: 500, maxHeight: 150, objectFit: "contain", objectPosition: "bottom left", flexShrink: 0 },
+        }],
+      }],
+    }, { document: env.document, pixelRatio: 1 });
+
+    const translations = env.context?.calls.filter((call) => call.name === "translate").map((call) => call.args);
+    const draw = env.context?.calls.find((call) => call.name === "drawImage");
+    expect(translations).toEqual([[0, 0], [0, 185], [20, 20]]);
+    expect(draw?.args.slice(1)).toEqual([0, 0, 500, 75]);
+  });
+
+  it.each([100, 400, 800])("reserves intrinsic auto width beside a sibling with source height %i", async (sourceHeight) => {
+    const env = environment();
+    await renderCanvas({
+      width: 400,
+      height: 200,
+      style: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
+      children: [
+        {
+          type: "container",
+          style: { padding: 10, flexShrink: 0 },
+          children: [{
+            type: "image",
+            src: loadedImage(sourceHeight * 2, sourceHeight),
+            style: { height: 50, objectFit: "contain" },
+          }],
+        },
+        { type: "container", style: { width: 20, height: 20 }, children: [] },
+      ],
+    }, { document: env.document, pixelRatio: 1 });
+
+    const translations = env.context?.calls.filter((call) => call.name === "translate").map((call) => call.args);
+    const draw = env.context?.calls.find((call) => call.name === "drawImage");
+    expect(translations?.at(-1)).toEqual([130, 0]);
+    expect(draw?.args.slice(1)).toEqual([0, 0, 100, 50]);
+  });
+
+  it("includes padding and borders once when deriving image height", async () => {
+    const env = environment();
+    await renderCanvas({
+      width: 200,
+      height: 200,
+      style: { alignItems: "flex-start" },
+      children: [
+        {
+          type: "container",
+          children: [{
+            type: "image",
+            src: loadedImage(400, 200),
+            style: { width: 124, padding: 10, borderWidth: 2, boxSizing: "border-box", objectFit: "contain" },
+          }],
+        },
+        { type: "container", style: { height: 10 }, children: [] },
+      ],
+    }, { document: env.document, pixelRatio: 1 });
+
+    const translations = env.context?.calls.filter((call) => call.name === "translate").map((call) => call.args);
+    const draw = env.context?.calls.find((call) => call.name === "drawImage");
+    expect(translations?.at(-1)).toEqual([0, 74]);
+    expect(draw?.args.slice(1)).toEqual([12, 12, 100, 50]);
+  });
+
+  it("honors a height assigned by flex shrink instead of restoring the intrinsic height", async () => {
+    const env = environment();
+    await renderCanvas({
+      width: 100,
+      height: 100,
+      style: { alignItems: "flex-start" },
+      children: [
+        { type: "image", src: loadedImage(100, 100), style: { width: 100, objectFit: "contain", objectPosition: "top left" } },
+        { type: "container", style: { width: 100, height: 50, flexShrink: 0 }, children: [] },
+      ],
+    }, { document: env.document, pixelRatio: 1 });
+
+    const translations = env.context?.calls.filter((call) => call.name === "translate").map((call) => call.args);
+    const draw = env.context?.calls.find((call) => call.name === "drawImage");
+    expect(translations?.at(-1)).toEqual([0, 50]);
+    expect(draw?.args.slice(1)).toEqual([0, 0, 50, 50]);
+  });
+
   it("clips rounded boxes and paints their border", async () => {
     const env = environment();
     await renderCanvas({
